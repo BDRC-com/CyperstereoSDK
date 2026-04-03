@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(data_cap)
+project(cyperstereo_ros2_bridge)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -14,6 +14,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_transport REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
 
 if(BUILD_TESTING)
@@ -48,13 +49,23 @@ endif()
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-add_executable(capture_image_imu src/capture_image_imu.cpp)
-ament_target_dependencies(capture_image_imu rclcpp cv_bridge image_transport)
-target_link_libraries(capture_image_imu Cyperlib ${OpenCV_LIBRARIES})
+add_executable(cyperstereo_ros2_bridge src/capture_image_imu.cpp)
+ament_target_dependencies(cyperstereo_ros2_bridge rclcpp cv_bridge image_transport sensor_msgs)
+target_link_libraries(cyperstereo_ros2_bridge Cyperlib ${OpenCV_LIBRARIES})
 
 install(
-  TARGETS capture_image_imu
+  TARGETS cyperstereo_ros2_bridge
   DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
 )
 
 ament_package()

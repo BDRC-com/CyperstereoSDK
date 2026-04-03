@@ -256,15 +256,22 @@ void SetStreamData(FrameInfo& frame_info, const void *data, std::function<void()
           image_count_hour = 0;
         }
 
+
         frame_info.framestream.image_timestamp = image_count_hour * 12 * 3600 + image_count_s + image_count_ms / 10000.0;
-        if (frame_info.framestream.image_timestamp - frame_info.last_image_timestamp < 0.015) {
-          std::cout << "image time too small " << frame_info.last_image_timestamp << "  " << frame_info.framestream.image_timestamp <<std::endl;
+        const bool image_timestamp_valid = frame_info.framestream.image_timestamp > 0.0;
+        const bool last_image_timestamp_valid = frame_info.last_image_timestamp > 0.0;
+        if (image_timestamp_valid && last_image_timestamp_valid) {
+          if (frame_info.framestream.image_timestamp - frame_info.last_image_timestamp < 0.015) {
+            std::cout << "image time too small " << frame_info.last_image_timestamp << "  " << frame_info.framestream.image_timestamp <<std::endl;
+          }
+          if (frame_info.framestream.image_timestamp - frame_info.last_image_timestamp > 0.025) {
+            std::cout << "image time too large " << frame_info.last_image_timestamp << "  " << frame_info.framestream.image_timestamp <<std::endl;
+          }
         }
-        if (frame_info.framestream.image_timestamp - frame_info.last_image_timestamp > 0.025) {
-          std::cout << "image time too large " << frame_info.last_image_timestamp << "  " << frame_info.framestream.image_timestamp <<std::endl;
+        if (image_timestamp_valid) {
+          frame_info.last_image_timestamp = frame_info.framestream.image_timestamp;
+          frame_info.last_image_count_s = image_count_s;
         }
-        frame_info.last_image_timestamp = frame_info.framestream.image_timestamp;
-        frame_info.last_image_count_s = image_count_s;
 	
         //imu data
         for (int i = 0; i < 4; ++i) {
@@ -287,21 +294,27 @@ void SetStreamData(FrameInfo& frame_info, const void *data, std::function<void()
           }
           frame_info.framestream.imu.temperature[i] = frame_info.framestream.imu.temperature[i] * 0.125 + 23;
           //std::cout << "frame_info.framestream.imu.temperature[i] " << frame_info.framestream.imu.temperature[i] << std::endl;
-          if (i == 3 && ((frame_info.framestream.imu.imu_timestamp[i] - frame_info.last_imu_timestamp > 0.006) ||  (frame_info.framestream.imu.imu_timestamp[i] - frame_info.last_imu_timestamp < 0.004) || (abs(frame_info.framestream.imu.temperature[i] - frame_info.framestream.imu.temperature[i - 1]) > 0.5))) {
+          const bool imu_timestamp_valid = frame_info.framestream.imu.imu_timestamp[i] > 0.0;
+          const bool last_imu_timestamp_valid = frame_info.last_imu_timestamp > 0.0;
+          if (i == 3 && last_imu_timestamp_valid && imu_timestamp_valid && ((frame_info.framestream.imu.imu_timestamp[i] - frame_info.last_imu_timestamp > 0.006) ||  (frame_info.framestream.imu.imu_timestamp[i] - frame_info.last_imu_timestamp < 0.004) || (abs(frame_info.framestream.imu.temperature[i] - frame_info.framestream.imu.temperature[i - 1]) > 0.5))) {
 	          continue;
           }
           frame_info.framestream.imu.imu_count = i;
 
-          if (frame_info.framestream.imu.imu_timestamp[i] - frame_info.last_imu_timestamp > 0.0075) {
-            std::cout << "imu time too large " << frame_info.last_imu_timestamp << "  " << frame_info.framestream.imu.imu_timestamp[i] << std::endl;
-          }
-          if (frame_info.framestream.imu.imu_timestamp[i] - frame_info.last_imu_timestamp <= 0) {
-            std::cout << "imu time too small " << frame_info.last_imu_timestamp << "  " << frame_info.framestream.imu.imu_timestamp[i] << std::endl;
+          if (last_imu_timestamp_valid && imu_timestamp_valid) {
+            if (frame_info.framestream.imu.imu_timestamp[i] - frame_info.last_imu_timestamp > 0.0075) {
+              std::cout << "imu time too large " << frame_info.last_imu_timestamp << "  " << frame_info.framestream.imu.imu_timestamp[i] << std::endl;
+            }
+            if (frame_info.framestream.imu.imu_timestamp[i] - frame_info.last_imu_timestamp <= 0) {
+              std::cout << "imu time too small " << frame_info.last_imu_timestamp << "  " << frame_info.framestream.imu.imu_timestamp[i] << std::endl;
+            }
           }
 
-          frame_info.last_imu_timestamp = frame_info.framestream.imu.imu_timestamp[i];
-          frame_info.last_imu_count_ms = imu_count_ms;
-          frame_info.last_imu_count_s = imu_count_s;
+          if (imu_timestamp_valid) {
+            frame_info.last_imu_timestamp = frame_info.framestream.imu.imu_timestamp[i];
+            frame_info.last_imu_count_ms = imu_count_ms;
+            frame_info.last_imu_count_s = imu_count_s;
+          }
         }
 
         //GNGGA

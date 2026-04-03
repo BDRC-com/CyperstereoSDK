@@ -1,0 +1,52 @@
+cyperstereo_ros2_bridge:
+  ros__parameters:
+    device:
+      width: 752
+      height: 480
+      fps: 50
+      pixel_format: "YUYV"
+      stream_index: 0
+
+    capture:
+      reconnect_delay_ms: 1000
+      queue:
+        size: 8
+        drop_policy: "drop_oldest"
+
+    image:
+      publish_hz: 20.0
+      left:
+        topic: "/cam0/image_raw"
+        frame_id: "cam0"
+        encoding: "mono8"
+      right:
+        topic: "/cam1/image_raw"
+        frame_id: "cam1"
+        encoding: "mono8"
+
+    imu:
+      topic: "/imu0"
+      frame_id: "imu0"
+      gravity_magnitude: 9.7887
+      publish_hz: 200.0
+
+    debug:
+      log_image_timestamps: false
+      log_imu_timestamps: false
+
+    qos:
+      left_image:
+        history: "keep_last"
+        depth: 10
+        reliability: "reliable"
+        durability: "volatile"
+      right_image:
+        history: "keep_last"
+        depth: 10
+        reliability: "reliable"
+        durability: "volatile"
+      imu:
+        history: "keep_last"
+        depth: 1000
+        reliability: "reliable"
+        durability: "volatile"
