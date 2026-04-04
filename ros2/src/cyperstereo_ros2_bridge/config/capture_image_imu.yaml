@@ -3,8 +3,7 @@ cyperstereo_ros2_bridge:
     device:
       width: 752
       height: 480
-      fps: 50
-      pixel_format: "YUYV"
+      pixel_format: "GREY"
       stream_index: 0
 
     capture:
@@ -14,7 +13,7 @@ cyperstereo_ros2_bridge:
         drop_policy: "drop_oldest"
 
     image:
-      publish_hz: 20.0
+      publish_stride: 2
       left:
         topic: "/cam0/image_raw"
         frame_id: "cam0"
@@ -28,7 +27,7 @@ cyperstereo_ros2_bridge:
       topic: "/imu0"
       frame_id: "imu0"
       gravity_magnitude: 9.7887
-      publish_hz: 200.0
+      publish_stride: 1
 
     debug:
       log_image_timestamps: false

@@ -56,5 +56,8 @@ add_executable(capture_image_imu
   capture_image_imu.cc)
 add_executable(save_image_imu
   save_image_imu.cc)
+add_executable(analyze_capture_timing
+  analyze_capture_timing.cc)
 target_link_libraries(capture_image_imu Cyperlib ${OpenCV_LIBRARIES})
 target_link_libraries(save_image_imu Cyperlib ${OpenCV_LIBRARIES})
+target_link_libraries(analyze_capture_timing Cyperlib ${OpenCV_LIBRARIES})

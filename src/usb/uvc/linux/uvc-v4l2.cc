@@ -81,6 +81,15 @@ struct buffer {
   size_t length;
 };
 
+static std::string fourcc_to_string(std::uint32_t fourcc) {
+  std::string text(4, ' ');
+  text[0] = static_cast<char>(fourcc & 0xFF);
+  text[1] = static_cast<char>((fourcc >> 8) & 0xFF);
+  text[2] = static_cast<char>((fourcc >> 16) & 0xFF);
+  text[3] = static_cast<char>((fourcc >> 24) & 0xFF);
+  return text;
+}
+
 struct context {
   context() {
     // VLOG(2) << __func__;
@@ -261,6 +270,14 @@ struct device {
     // fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
     if (xioctl(fd, VIDIOC_S_FMT, &fmt) < 0)
       std::cout << "VIDIOC_S_FMT" << std::endl;
+    std::cout << "VIDIOC_S_FMT negotiated: fourcc="
+              << fourcc_to_string(fmt.fmt.pix.pixelformat)
+              << " (0x" << std::hex << fmt.fmt.pix.pixelformat << std::dec << ")"
+              << ", width=" << fmt.fmt.pix.width
+              << ", height=" << fmt.fmt.pix.height
+              << ", bytesperline=" << fmt.fmt.pix.bytesperline
+              << ", sizeimage=" << fmt.fmt.pix.sizeimage
+              << std::endl;
 
     v4l2_streamparm parm;
     parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
