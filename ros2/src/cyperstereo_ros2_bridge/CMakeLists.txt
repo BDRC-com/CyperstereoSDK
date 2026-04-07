@@ -53,8 +53,11 @@ add_executable(cyperstereo_ros2_bridge src/capture_image_imu.cpp)
 ament_target_dependencies(cyperstereo_ros2_bridge rclcpp cv_bridge image_transport sensor_msgs)
 target_link_libraries(cyperstereo_ros2_bridge Cyperlib ${OpenCV_LIBRARIES})
 
+add_executable(cyperstereo_topic_timing_analyzer src/analyze_topic_timing.cpp)
+ament_target_dependencies(cyperstereo_topic_timing_analyzer rclcpp sensor_msgs)
+
 install(
-  TARGETS cyperstereo_ros2_bridge
+  TARGETS cyperstereo_ros2_bridge cyperstereo_topic_timing_analyzer
   DESTINATION lib/${PROJECT_NAME}
 )
 
