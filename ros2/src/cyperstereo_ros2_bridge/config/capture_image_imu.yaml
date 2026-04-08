@@ -1,22 +1,38 @@
 cyperstereo_ros2_bridge:
   ros__parameters:
+    # CyperStereo 主采集与 ROS 2 发布节点。
+    # 负责把双目图像和 IMU 数据发布到 ROS 2 话题。
     device:
+      # 相机输出分辨率。需要和设备支持的模式匹配。
       width: 752
       height: 480
+      # 原始像素格式。当前桥接主要按 GREY / YUYV 处理。
       pixel_format: "GREY"
+      # 设备流索引。通常保持 0，除非设备固件定义了多路流。
       stream_index: 0
 
     capture:
+      # 设备掉线后的重连等待时间，单位毫秒。
       reconnect_delay_ms: 1000
       queue:
+        # 采集线程到发布线程之间的缓存队列长度。
+        # 帧率高但下游处理慢时，可适当增大。
         size: 8
+        # 队列满时的丢帧策略：
+        # - drop_oldest: 丢最旧的数据，尽量保持低延迟
+        # - drop_newest: 丢最新的数据，尽量保留历史顺序
         drop_policy: "drop_oldest"
 
     image:
+      # 图像降采样发布步长。
+      # 1 表示每帧都发，2 表示每 2 帧发 1 帧。
+      # 现场想降带宽或减轻下游负载时，优先调这个参数。
       publish_stride: 2
       left:
+        # 左目图像 ROS 话题名。推流节点默认订阅这个话题。
         topic: "/cam0/image_raw"
         frame_id: "cam0"
+        # 发布编码。当前左/右目默认按 mono8 发布。
         encoding: "mono8"
       right:
         topic: "/cam1/image_raw"
@@ -24,16 +40,23 @@ cyperstereo_ros2_bridge:
         encoding: "mono8"
 
     imu:
+      # IMU 发布话题。
       topic: "/imu0"
       frame_id: "imu0"
+      # 重力标量，用于把设备加速度单位换算到 m/s^2。
       gravity_magnitude: 9.7887
+      # IMU 降采样发布步长。1 表示不过滤。
       publish_stride: 1
 
     debug:
+      # 打开后会输出图像时间戳，便于查时延和乱序问题。
       log_image_timestamps: false
+      # 打开后会输出 IMU 时间戳，便于查同步问题。
       log_imu_timestamps: false
 
     qos:
+      # 图像/IMU 的 ROS 2 QoS。
+      # 现场一般不需要改，除非对接端明确要求 best_effort 或更深队列。
       left_image:
         history: "keep_last"
         depth: 10
@@ -49,3 +72,75 @@ cyperstereo_ros2_bridge:
         depth: 1000
         reliability: "reliable"
         durability: "volatile"
+
+mjpeg_streamer:
+  ros__parameters:
+    # MJPEG HTTP 推流节点。
+    # 使用浏览器直接打开 http://<ip>:<port>/ 即可看图。
+    # 适合快速查看画面，兼容性好，但压缩效率和时延控制不如 RTSP。
+
+    # 是否启用 MJPEG 推流。
+    # true: launch 时启动 HTTP 推流
+    # false: 节点立即退出，不占用推流资源
+    enabled: true
+
+    # 订阅的图像话题。默认使用左目原始图像。
+    # 若要推右目或其他处理后图像，直接改这里。
+    image_topic: "/cam0/image_raw"
+
+    # 监听地址。
+    # 0.0.0.0 表示接受所有网卡访问；如只允许本机可改成 127.0.0.1。
+    bind_address: "0.0.0.0"
+
+    # HTTP 端口。浏览器访问示例：
+    # http://<设备IP>:8080/
+    port: 8080
+
+    # MJPEG 最大输出帧率。
+    # 0 表示不额外限帧；网络紧张时建议降到 5~15。
+    max_fps: 15.0
+
+    # JPEG 质量，范围通常 1~100。
+    # 越高画质越好、带宽越大；现场常用 60~85。
+    jpeg_quality: 80
+
+rtsp_streamer:
+  ros__parameters:
+    # RTSP H.264 推流节点。
+    # 适合地面站、播放器或录像链路，压缩效率更高。
+
+    # 是否启用 RTSP 推流。
+    enabled: false
+
+    # 订阅的图像话题。默认使用左目原始图像。
+    image_topic: "/cam0/image_raw"
+
+    # RTSP 服务监听地址。
+    bind_address: "0.0.0.0"
+
+    # RTSP 服务端口。播放器访问示例：
+    # rtsp://<设备IP>:8554/cyperstereo
+    port: 8554
+
+    # RTSP 挂载路径，必须以 / 开头。
+    mount_point: "/cyperstereo"
+
+    # 推流帧率。带宽不足时优先调低这个值。
+    fps: 15
+
+    # H.264 目标码率，单位 kbps。
+    # 现场经验值：
+    # - 低带宽预览: 800~1500
+    # - 常规链路: 1500~3000
+    # - 追求细节: 3000+
+    bitrate_kbps: 2000
+
+    # 关键帧间隔，单位帧。
+    # 值越小，首屏和丢包恢复越快，但码率开销更大。
+    key_int_max: 15
+
+    # 编码器选择：
+    # - x264: 通用软件编码，兼容性最好
+    # - nvv4l2: Jetson/NVIDIA 硬件编码
+    # - vaapi: Intel/AMD VAAPI 硬件编码
+    encoder: "x264"

@@ -26,5 +26,19 @@ def generate_launch_description():
                 output="screen",
                 parameters=[params_file],
             ),
+            Node(
+                package="cyperstereo_ros2_bridge",
+                executable="mjpeg_streamer",
+                name="mjpeg_streamer",
+                output="screen",
+                parameters=[params_file],
+            ),
+            Node(
+                package="cyperstereo_ros2_bridge",
+                executable="rtsp_streamer",
+                name="rtsp_streamer",
+                output="screen",
+                parameters=[params_file],
+            ),
         ]
     )

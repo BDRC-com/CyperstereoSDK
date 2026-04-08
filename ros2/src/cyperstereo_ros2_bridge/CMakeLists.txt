@@ -62,6 +62,20 @@ install(
 )
 
 install(
+  PROGRAMS
+    scripts/mjpeg_streamer.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME mjpeg_streamer
+)
+
+install(
+  PROGRAMS
+    scripts/rtsp_streamer.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME rtsp_streamer
+)
+
+install(
   DIRECTORY config
   DESTINATION share/${PROJECT_NAME}
 )
