@@ -82,7 +82,7 @@ mjpeg_streamer:
     # 是否启用 MJPEG 推流。
     # true: launch 时启动 HTTP 推流
     # false: 节点立即退出，不占用推流资源
-    enabled: true
+    enabled: false
 
     # 订阅的图像话题。默认使用左目原始图像。
     # 若要推右目或其他处理后图像，直接改这里。
